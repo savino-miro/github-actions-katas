@@ -1,0 +1,35 @@
+name: Java CI (matrix)
+on: push
+jobs:
+  Clone-down:
+    name: Clone down repo
+    runs-on: ubuntu-latest
+    container: gradle:6-jdk11
+    steps:
+    - uses: actions/checkout@v3
+    - name: Upload Repo
+      uses: actions/upload-artifact@v3
+      with:
+        name: code
+        path: .
+  Build:
+    runs-on: ubuntu-latest
+    needs: Clone-down
+    strategy:
+      matrix:
+        container: ["gradle:6-jdk8", "gradle:6-jdk11", "gradle:6-jdk17"]
+    container:
+      image: ${{ matrix.container }}   
+    steps:
+    - name: Download code
+      uses: actions/download-artifact@v3
+      with:
+        name: code
+        path: .
+    - name: Build with Gradle
+      run: chmod +x ci/build-app.sh && ci/build-app.sh
+    - name: Upload Repo
+      uses: actions/upload-artifact@v3
+      with:
+        name: code
+        path: .
